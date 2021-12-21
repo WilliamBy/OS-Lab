@@ -9,8 +9,8 @@ int main(int argc, char const *argv[])
     sscanf(argv[1], "%d", &semid);
     printf("enter writebuf, argv: [%d, %d]\n", shmid, semid);
     shm_struct *shm_handle = (shm_struct*) shmat(shmid, NULL, SHM_R | SHM_W);
-    int fd;
-    if ((fd = fopen(filename, 'rb')) == NULL)
+    FILE *fd;
+    if ((fd = fopen(src_path, "r")) == NULL)
     {
         fprintf(stderr, "fopen failed: writebuf\n");
         return 1;

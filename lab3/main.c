@@ -16,7 +16,7 @@ int main(int argc, char const *argv[])
 
     /* 创建信号灯集 */
     int semid;                     //信号灯集合句柄
-    if ((semid = semget(IPC_PRIVATE, 2, IPC_CREAT | 0666)) < 0)
+    if ((semid = semget(IPC_PRIVATE, 3, IPC_CREAT | 0666)) < 0)
     {
         fprintf(stderr, "semget failed: %s\n", strerror(semid));
         return 1;
@@ -48,31 +48,42 @@ int main(int argc, char const *argv[])
 
     /* 创建读写进程 */
     pid_t pr, pw;
-    char _argv[2][10];
-    sprintf_s(_argv[0], "%d", shmid, 10);
-    sprintf_s(_argv[1], "%d", semid, 10);
+    char *const _argv[8] = {(char *)malloc(10 * sizeof(char)), (char *)malloc(10 * sizeof(char))};
+    sprintf(_argv[0], "%d", shmid);
+    sprintf(_argv[1], "%d", semid);
     if ((pr = fork()) == 0)
     {
-        execv("./readbuf.c", _argv);
+        execv("readbuf", (char * const*)_argv);
     }
     else if ((pw = fork()) == 0)
     {
-        execv("./writebuf.c", _argv);
-    }
-    
-    /* 等待子进程结束 */
-    wait(NULL);
-    wait(NULL);
-
-    /* 删除信号灯集和共享内存 */
-    if (semctl(semid, 0, IPC_RMID, arg) == -1)
+        execv("writebuf", (char * const*)_argv);
+    } else
     {
-        fprintf(stderr, "can't delete sems!\n");
-        return 1;
-    }
-    if (shmctl(shmid, IPC_RMID, 0) < 0) {
-        fprintf(stderr, "can't delete shms!\n");
-        return 1;
+        int pr_ret, pw_ret;
+        /* 等待子进程结束 */
+        waitpid(pr, &pr_ret, 0);
+        waitpid(pw, &pw_ret, 0);
+        if (pr_ret != 0)
+        {
+            fprintf(stderr, "readbuf return %d\n", pr_ret);
+        }
+        if (pw_ret != 0)
+        {
+            fprintf(stderr, "writebuf return %d\n", pr_ret);
+        }
+
+        /* 删除信号灯集和共享内存 */
+        if (semctl(semid, 0, IPC_RMID, arg) == -1)
+        {
+            fprintf(stderr, "can't delete sems!\n");
+            return 1;
+        }
+        if (shmctl(shmid, IPC_RMID, 0) < 0)
+        {
+            fprintf(stderr, "can't delete shms!\n");
+            return 1;
+        }
     }
     return 0;
 }
