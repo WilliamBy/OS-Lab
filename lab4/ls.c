@@ -118,19 +118,22 @@ void printdir(const char *dir, int depth)
     while ((entry = readdir(dp)) != NULL)
     {
         lstat(entry->d_name, &statbuf);
-        if ((statbuf.st_mode & S_IFMT) == S_IFDIR) {   //如果是目录，还要递归打印
-            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-            {
-                continue;
-            }
-            print_stat(&statbuf);
-            printf(" %s\n", entry->d_name);
-            printdir(entry->d_name, depth + 4);
+        if ((statbuf.st_mode & S_IFMT) == S_IFDIR)
+        { //如果是目录，还要递归打印
+          if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+          {
+            continue;
+          }
+          printf("[%d] ", depth); //打印深度
+          print_stat(&statbuf);
+          printf(" %s\n", entry->d_name);
+          printdir(entry->d_name, depth + 4);
         }
         else
         {   //如果是文件，直接打印信息
-            print_stat(&statbuf);
-            printf(" %s\n", entry->d_name);
+          printf("[%d] ", depth); //打印深度
+          print_stat(&statbuf);
+          printf(" %s\n", entry->d_name);
         }
     }
     chdir("..");
