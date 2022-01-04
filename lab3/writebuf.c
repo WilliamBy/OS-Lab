@@ -1,3 +1,4 @@
+/* writebuf.h */
 #include "header.h"
 
 char buf[8]; //缓冲区
@@ -7,7 +8,6 @@ int main(int argc, char const *argv[])
     int shmid, semid;
     sscanf(argv[0], "%d", &shmid);
     sscanf(argv[1], "%d", &semid);
-    printf("enter writebuf, argv: [%d, %d]\n", shmid, semid);
     shm_struct *shm_handle = (shm_struct*) shmat(shmid, NULL, SHM_R | SHM_W);
     FILE *fd;
     size_t read_size;
